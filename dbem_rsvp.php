@@ -10,7 +10,7 @@ function dbem_add_booking_form() {
 	if(!empty($form_add_message))
 		$module .= "<div class='dbem-rsvp-message'>$form_add_message</div>";
 	$booked_places_options = array();
-	for ( $i = 1; $i <= 10; $i++) 
+	for ( $i = 1; $i <= 5; $i++) 
 		array_push($booked_places_options, "<option value='$i'>$i</option>");
 	
 	$module  .= "<form id='dbem-rsvp-form' name='booking-form' method='post' action='$destination'>
@@ -164,6 +164,22 @@ function dbem_delete_booking($booking_id) {
 	return __('Booking deleted', 'dbem');
 }
 
+// Added by strobemonkey - probably not the right file for this to be in
+function dbem_delete_person($person_id) {
+	global $wpdb;
+	
+	$bookings_table = $wpdb->prefix.BOOKINGS_TBNAME; 
+	$people_table = $wpdb->prefix.PEOPLE_TBNAME; 
+
+	$sql = "DELETE FROM $bookings_table WHERE person_id = $person_id";
+	$wpdb->query($sql);   
+	
+	$sql = "DELETE FROM $people_table WHERE person_id = $person_id";
+	$wpdb->query($sql);   
+
+	return __('Person deleted', 'dbem');
+}
+
 function dbem_get_available_seats($event_id) {
 	global $wpdb; 
 	$bookings_table = $wpdb->prefix.BOOKINGS_TBNAME;
@@ -234,6 +250,8 @@ function dbem_bookings_compact_table($event_id) {
 	$available_seats = dbem_get_available_seats($event_id);
 	$booked_seats = dbem_get_booked_seats($event_id);   
 	$printable_address = get_bloginfo('wpurl')."/wp-admin/admin.php?page=people&action=printable&event_id=$event_id";
+	$export_address = get_bloginfo('wpurl')."/wp-admin/admin.php?page=people&action=export&event_id=$event_id";
+	
 	if (count($bookings)>0) { 
 		$table = 
 		"<div class='wrap'>
@@ -272,6 +290,7 @@ function dbem_bookings_compact_table($event_id) {
 		 	    <br class='clear'/>
 		 		 	<div id='major-publishing-actions'>  
 					<div id='publishing-action'> 
+					<a id='printable'  target='' href='$export_address'>".__('Export','dbem')."</a>
 					<a id='printable'  target='' href='$printable_address'>".__('Printable view','dbem')."</a>
 					<br class='clear'/>             
 	        

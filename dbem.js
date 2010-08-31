@@ -14,8 +14,21 @@ function remove_booking() {
 	   		}
 	 	});         
 	  	
-
 }   
+
+function remove_person() {
+	idToRemove = ($j(this).parents('tr:first').attr('id').split("-"))[1];     
+	$j.ajax({
+  	  type: "POST",
+	    url: "admin.php?page=people&action=remove_person",
+	    data: "person_id="+ idToRemove,
+	    success: function(){  
+
+				$j('tr#person-' + idToRemove).fadeOut('slow');
+                update_people_data();
+	   		}
+	 	});
+}
                   
 function update_booking_data () {
   	$j.getJSON("admin.php?page=people&dbem_ajax_action=booking_data",{id: eventId, ajax: 'true'}, function(data){
@@ -26,9 +39,17 @@ function update_booking_data () {
   		});  
 }
 
+function update_people_data () {
+  	$j.getJSON("admin.php?page=people&dbem_ajax_action=people_data",{id: personId, ajax: 'true'}, function(data){});  
+}
+
+
 $j(document).ready( function() {
     // Managing bookings delete operations 
 	$j('a.bookingdelbutton').click(remove_booking);
+	
+	// Managing people delete operations
+	$j('a.persondelbutton').click(remove_person);	
 });
 
 jQuery(document).ready( function($) {

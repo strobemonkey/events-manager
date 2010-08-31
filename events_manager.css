@@ -43,7 +43,23 @@ a.bookingdelbutton {
 a.bookingdelbutton:hover {
 	background: url("../../../wp-admin/images/xit.gif") no-repeat -10px;  
 
-}       
+}
+
+a.persondelbutton {
+	background: url("../../../wp-admin/images/xit.gif") no-repeat;  
+    font-size: 11px;
+	text-indent: -9999px;
+	height: 10px;   
+	width: 10px;
+	overflow:hidden;
+	position:absolute;
+  margin-top:4px;
+}     
+a.persondelbutton:hover {
+	background: url("../../../wp-admin/images/xit.gif") no-repeat -10px;  
+
+}
+
 /* Printable stuff */
 body#printable {
 	font-family: Gill Sans, Helvetica, Arial, sans-serif;  

@@ -6,6 +6,14 @@ function dbem_people_page() {
 			dbem_delete_booking($_POST['booking_id']);   
       
 	}   
+
+	// Added AJAX person removal
+ 	if(isset($_GET['action']) && $_GET['action'] == 'remove_person') {
+		if(isset($_POST['person_id']))
+			dbem_delete_person($_POST['person_id']);   
+      
+	}   
+
 	?>  
 	
 	<div class='wrap'> 
@@ -27,9 +35,18 @@ function dbem_ajax_actions() {
      echo "[ {bookedSeats:".dbem_get_booked_seats($_GET['id']).", availableSeats:".dbem_get_available_seats($_GET['id'])."}]"; 
 	die();  
 	}  
+ 	if(isset($_GET['dbem_ajax_action']) && $_GET['dbem_ajax_action'] == 'people_data') {
+		dbem_people_page();	
+	die();  
+	}  
 	if(isset($_GET['action']) && $_GET['action'] == 'printable'){
 		if(isset($_GET['event_id']))
 			dbem_printable_booking_report($_GET['event_id']);
+	}
+	
+	if(isset($_GET['action']) && $_GET['action'] == 'export'){
+		if(isset($_GET['event_id']))
+			dbem_exportable_booking_report($_GET['event_id']);
 	}
 	
 	if(isset($_GET['query']) && $_GET['query'] == 'GlobalMapData') { 
@@ -60,8 +77,44 @@ function dbem_global_map_json($eventful = false) {
 	echo $json;
 }
 
+function dbem_exportable_booking_report($event_id) {
+	
+	$event = dbem_get_event($event_id);
+	$bookings =  dbem_get_bookings_for($event_id);
+	$available_seats = dbem_get_available_seats($event_id);
+	$booked_seats = dbem_get_booked_seats($event_id);   
 
+	// first create a two-dimensional
+	// array (please stick to 2 dimensions, the library does not
+	// work with complex arrays):
 
+	$a = array();
+	
+	$a[] = array($event['event_name']);
+	$a[] = array(dbem_replace_placeholders("#d #M #Y", $event));
+	$a[] = array(dbem_replace_placeholders("#_LOCATION, #_ADDRESS, #_TOWN", $event));
+	$a[] = array(dbem_replace_placeholders('Bookings data', 'dbem'));
+	$a[] = array( dbem_replace_placeholders('Name', 'dbem'), dbem_replace_placeholders('E-mail', 'dbem'), dbem_replace_placeholders('Phone number', 'dbem'), dbem_replace_placeholders('Seats', 'dbem'), dbem_replace_placeholders('Comment', 'dbem') );
+	
+	foreach($bookings as $booking) {
+    $a[] = array($booking['person_name'], $booking['person_email'],	$booking['person_phone'], $booking['booking_seats'], $booking['booking_comment']);
+		;
+	}
+
+	$a[] = array( dbem_replace_placeholders('Booked', 'dbem'), $booked_seats);
+	$a[] = array( dbem_replace_placeholders('Available', 'dbem'), $available_seats);
+
+	// Instantiate the library and give the array as input:
+	require_once ('php-excel.class.php');
+	$xls = new Excel_XML;
+	$xls->addArray ( $a );
+
+	// Generate the XML/Excel file. This method should trigger
+	// the browsers "Save as..." dialog:
+	$xls->generateXML ( "events_export" );
+	
+	die();
+}
 
 function dbem_printable_booking_report($event_id) {
 	$event = dbem_get_event($event_id);
@@ -147,7 +200,7 @@ function dbem_people_table() {
 							</tfoot>\n
 			" ;
 foreach ($people as $person) {
-$table .= "<tr> <td>&nbsp;</td>
+$table .= "<tr id='person-".$person['person_id']."'> <td><a id='person-check-".$person['person_id']."' class='persondelbutton'>X</a></td>
 						<td>".$person['person_name']."</td>
 						<td>".$person['person_email']."</td>
 						<td>".$person['person_phone']."</td></tr>";
@@ -156,7 +209,9 @@ $table .= "<tr> <td>&nbsp;</td>
 $table .= "</table>";
 	echo $table;   
 }
+
 } 
+
 
 function dbem_get_person_by_name_and_email($name, $email) {
 	global $wpdb; 
